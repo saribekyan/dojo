@@ -13,7 +13,7 @@ def mkdir_safe( dir_to_make ):
 
     os.makedirs(dir_to_make)
 
-def run(input_dir, output_dir):
+def run(input_dir, output_dir, input_image_extension):
 
     tile_num_pixels_y = 512
     tile_num_pixels_x = 512
@@ -21,7 +21,6 @@ def run(input_dir, output_dir):
     original_input_images_path = input_dir
     output_tile_image_path     = os.path.join(output_dir,'images/tiles/')
     output_tile_volume_file    = os.path.join(output_dir,'images/tiledVolumeDescription.xml')
-    input_image_extension      = '.tif'
     output_image_extension     = '.tif'
     image_resize_filter        = PIL.Image.ANTIALIAS
     #nimages_to_process            = 100

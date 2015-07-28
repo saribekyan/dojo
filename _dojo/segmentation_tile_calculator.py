@@ -16,7 +16,7 @@ import glob
 import sqlite3
 import colorsys
 
-def run(input_dir, output_dir):
+def run(input_dir, output_dir, input_file_format):
 
     tile_num_pixels_y             = 512
     tile_num_pixels_x             = 512
@@ -36,7 +36,7 @@ def run(input_dir, output_dir):
 
     nimages_to_process            = 1337
     ncolors                       = 1000
-    input_file_format             = 'tif'
+    #input_file_format             = 'tif'
 
     #original_input_ids_path       = 'C:\\dev\\datasets\\conn\\main_dataset\\5K_cube\\diced_xy=512_z=32_xyOv=128_zOv=12_dwnSmp=1\\res_from_0ct15_PF\\FS=1\\stitched\\labels_grow'
     #output_path                   = 'C:\\dev\\datasets\\Cube1x10\\mojo'
