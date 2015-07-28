@@ -164,7 +164,7 @@ def run(input_dir, output_dir, input_file_format):
 
 
         id_max               = 0;
-        id_counts            = np.zeros( 0, dtype=np.int64 );
+        id_counts            = np.zeros( 1, dtype=np.int64 );
         id_tile_list         = [];
         tile_index_z         = 0
 
@@ -426,3 +426,7 @@ def run(input_dir, output_dir, input_file_format):
             
         with open( output_tile_volume_file, 'w' ) as file:
             file.write( lxml.etree.tostring( tiledVolumeDescription, pretty_print = True ) )
+
+
+if __name__ == "__main__":
+    run('/home/hayks/dojo/data/2/seg', '/home/hayks/dojo/data/2/mojo', 'png')

@@ -37,7 +37,7 @@ def convert_if_needed(images_dir, output_dir):
     # if needed convert and move the images in images_dir to data_dir
 
     files = sorted( glob.glob( images_dir + '/*') )
-    f = files[0]
+    f = files[len(files) / 2]
 
     fname, ext = os.path.splitext(f)
     ext = ext[1:]
