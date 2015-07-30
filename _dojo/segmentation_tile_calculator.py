@@ -16,7 +16,7 @@ import glob
 import sqlite3
 import colorsys
 
-def run(input_dir, output_dir, input_file_format):
+def run(input_dir, output_dir):
 
     tile_num_pixels_y             = 512
     tile_num_pixels_x             = 512
@@ -107,6 +107,9 @@ def run(input_dir, output_dir, input_file_format):
         #     # Read from pipeline format
         #     ids = ids.transpose() - 1
 
+        if len( ids.shape ) == 3:
+            ids = ids[..., 0] + ids[..., 1] * 256 + ids[..., 2] * 256 * 256
+
         return ids
 
 
@@ -120,7 +123,7 @@ def run(input_dir, output_dir, input_file_format):
 
     #color_map_mat_dict   = scipy.io.loadmat( original_input_color_map_path )
     #id_color_map         = color_map_mat_dict[ 'cmap' ]
-    input_search_string  = original_input_ids_path + os.sep + '*.' + input_file_format
+    input_search_string  = original_input_ids_path + os.sep + '*' # + input_file_format # take everything
     files                = sorted( glob.glob( input_search_string ) )
     print "Found {0} input images in {1}".format( len(files), input_search_string )
 

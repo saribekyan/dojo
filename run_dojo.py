@@ -90,11 +90,11 @@ if __name__ == '__main__':
     
     if mkdir_p(mojo_dir):
 
-        orig_images_dir, ext = convert_if_needed(orig_images_dir, data_dir + '/orig')
-        _dojo.image_tile_calculator.run(orig_images_dir, data_dir + '/mojo', ext)
+#       orig_images_dir, ext = convert_if_needed(orig_images_dir, data_dir + '/orig')
+        _dojo.image_tile_calculator.run(orig_images_dir, mojo_dir)
 
-        seg_images_dir, ext = convert_if_needed(seg_images_dir,  data_dir + '/seg')
-        _dojo.segmentation_tile_calculator.run(seg_images_dir, mojo_dir, ext)
+#        seg_images_dir, ext = convert_if_needed(seg_images_dir,  data_dir + '/seg')
+        _dojo.segmentation_tile_calculator.run(seg_images_dir, mojo_dir)
 
     logic = dojo.ServerLogic()
     logic.run(mojo_dir, output_dir, port, detect_orphans, configured=True)
