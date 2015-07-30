@@ -9,11 +9,16 @@ import lxml.etree
 import glob
 import numpy as np
 
+import Image
+
 def mkdir_safe( dir_to_make ):
 
     os.makedirs(dir_to_make)
 
 def run(input_dir, output_dir):
+
+    print input_dir
+    print output_dir
 
     tile_num_pixels_y = 512
     tile_num_pixels_x = 512
@@ -21,7 +26,7 @@ def run(input_dir, output_dir):
     original_input_images_path = input_dir
     output_tile_image_path     = os.path.join(output_dir,'images/tiles/')
     output_tile_volume_file    = os.path.join(output_dir,'images/tiledVolumeDescription.xml')
-    input_image_extension      = '.tif'
+    input_image_extension      = ''   # all files in the directory
     output_image_extension     = '.tif'
     image_resize_filter        = PIL.Image.ANTIALIAS
     #nimages_to_process            = 100
@@ -36,19 +41,15 @@ def run(input_dir, output_dir):
 
     for file in files:
 
+        print file
         original_image = PIL.Image.open( file )
+        original_image = original_image.resize((1024, 1024), PIL.Image.BILINEAR)
 
 
         ( original_image_num_pixels_x, original_image_num_pixels_y ) = original_image.size
 
         # Enhance contrast to 2% saturation
         saturation_level = 0.02
-        sorted2 = np.sort( np.uint8(original_image).ravel() )
-
-        minval = np.float32( sorted2[ len(sorted2) * ( saturation_level / 2 ) ] )
-        maxval = np.float32( sorted2[ len(sorted2) * ( 1 - saturation_level / 2 ) ] )
-
-        original_image = original_image = original_image.point(lambda i: (i - minval) * ( 255 / (maxval - minval)))
 
         current_image_num_pixels_y = original_image_num_pixels_y
         current_image_num_pixels_x = original_image_num_pixels_x
@@ -117,4 +118,5 @@ def run(input_dir, output_dir):
     with open( output_tile_volume_file, 'w' ) as file:
         file.write( lxml.etree.tostring( tiledVolumeDescription, pretty_print = True ) )
 
-
+if __name__ == '__main__':
+    run('/home/hayks/Dropbox/RDExtendLeft/orig_images/', '/home/hayks/Dropbox/tmp', 'png')

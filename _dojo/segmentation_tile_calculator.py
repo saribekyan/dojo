@@ -7,6 +7,7 @@ import PIL
 import PIL.Image
 import numpy as np
 import scipy
+import scipy.misc
 import scipy.io
 # import cv2
 import h5py
@@ -36,7 +37,7 @@ def run(input_dir, output_dir):
 
     nimages_to_process            = 1337
     ncolors                       = 1000
-    input_file_format             = 'tif'
+    #input_file_format             = 'tif'
 
     #original_input_ids_path       = 'C:\\dev\\datasets\\conn\\main_dataset\\5K_cube\\diced_xy=512_z=32_xyOv=128_zOv=12_dwnSmp=1\\res_from_0ct15_PF\\FS=1\\stitched\\labels_grow'
     #output_path                   = 'C:\\dev\\datasets\\Cube1x10\\mojo'
@@ -107,6 +108,11 @@ def run(input_dir, output_dir):
         #     # Read from pipeline format
         #     ids = ids.transpose() - 1
 
+        if len( ids.shape ) == 3:
+            ids = ids[..., 0] + ids[..., 1] * 256 + ids[..., 2] * 256 * 256
+
+        ids = scipy.misc.imresize(ids, (1024, 1024)) # bilinear
+
         return ids
 
 
@@ -120,7 +126,7 @@ def run(input_dir, output_dir):
 
     #color_map_mat_dict   = scipy.io.loadmat( original_input_color_map_path )
     #id_color_map         = color_map_mat_dict[ 'cmap' ]
-    input_search_string  = original_input_ids_path + os.sep + '*.' + input_file_format
+    input_search_string  = original_input_ids_path + os.sep + '*' # + input_file_format # take everything
     files                = sorted( glob.glob( input_search_string ) )
     print "Found {0} input images in {1}".format( len(files), input_search_string )
 
@@ -164,7 +170,7 @@ def run(input_dir, output_dir):
 
 
         id_max               = 0;
-        id_counts            = np.zeros( 0, dtype=np.int64 );
+        id_counts            = np.zeros( 1, dtype=np.int64 );
         id_tile_list         = [];
         tile_index_z         = 0
 
@@ -426,3 +432,7 @@ def run(input_dir, output_dir):
             
         with open( output_tile_volume_file, 'w' ) as file:
             file.write( lxml.etree.tostring( tiledVolumeDescription, pretty_print = True ) )
+
+
+if __name__ == "__main__":
+    run('/home/hayks/dojo/data/2/seg', '/home/hayks/dojo/data/2/mojo', 'png')
