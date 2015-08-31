@@ -1,7 +1,7 @@
 # ./run_dojo.py data_id path/to/original_images path/to/segmentation/images path/to/output/folder port
 #   A temporary folder data will be created
 
-import os, errno
+import os
 import os.path
 import sys
 import glob
@@ -13,20 +13,11 @@ from optparse import OptionParser
 import _dojo
 
 import dojo
+
+from _dojo import common
 from _dojo.common import Common
 
-def mkdir_p(path):
-    try:
-        os.makedirs(path)
-        print 'mkdir -p ' + path
-        return True
-
-    except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            print path + ' exists' 
-            return False
-
-        else: raise
+from multiprocessing import Process
 
 if __name__ == '__main__':
     parser = OptionParser("Usage: %prog ORIGINAL/IMAGES/DIR SEGMENTATAION/IMAGES/DIR OUTPUT/DIR [options]")
@@ -43,11 +34,11 @@ if __name__ == '__main__':
     parser.add_option("--n_images", dest="n_images", type="int", default=-1, help="process only first n_images images, -1 means all")
     parser.add_option("--n_rows", dest="n_rows", type="int", default=1, help="number of rows of blocks that each image is part of")
     parser.add_option("--n_cols", dest="n_cols", type="int", default=1, help="number of cols of blocks that each image is part of")
-    parser.add_option("--dojo_h", dest="dojo_h", type="int", default=2048, help="height of each dojo instance.")
-    parser.add_option("--dojo_w", dest="dojo_w", type="int", default=2048, help="width of each dojo instance.")
+    parser.add_option("--dojo_size", dest="dojo_size", type="int", default=2048, help="height/width of each dojo instance.")
     parser.add_option("--port", dest="port", type="int", default=1993, help="the port of dojo")
     parser.add_option("--orphans", dest="detect_orphans", action="store_true", help="detects orphans")
     parser.add_option("--force", dest="force", action="store_true", help="if set, will rewrite all the files")
+    parser.add_option("--n_dojo_blocks", dest="num_dojo_blocks", type="int", default=-1, help="number of dojo blocks, if mojo data is already generated")
 
     args, opts = parser.parse_args()
 
@@ -74,23 +65,38 @@ if __name__ == '__main__':
     if os.path.exists(out_dir):
         shutil.rmtree(out_dir)
 
-    common_state = Common(n_images, n_rows, n_cols, dojo_h, dojo_w)
+    common_state = Common(n_images, n_rows, n_cols, dojo_size)
 
-    if mkdir_p(os.path.join(mojo_dir, 'images')):
+    if common.mkdir_p(os.path.join(mojo_dir, '00', 'images')):
 #       orig_images_dir, ext = convert_if_needed(orig_images_dir, data_dir + '/orig')
         _dojo.image_tile_calculator.run(orig_images_dir, mojo_dir, common_state)
     else:
         print "    Images folder already existes"
 
-    if mkdir_p(os.path.join(mojo_dir, 'ids')):
+    if common.mkdir_p(os.path.join(mojo_dir, '00', 'ids')):
 #        seg_images_dir, ext = convert_if_needed(seg_images_dir,  data_dir + '/seg')
         _dojo.segmentation_tile_calculator.run(seg_images_dir, mojo_dir, common_state)
     else:
         print "    Ids folder already exists"
 
-    mkdir_p(out_dir)
+    if common_state.image_height != None:
+        num_dojo_blocks = common_state.num_dojo_blocks()
+
+    for i in xrange(num_dojo_blocks):
+        common.mkdir_p(os.path.join(out_dir, '%02d' % i))
     print "Results saved in " + out_dir
 
-    logic = dojo.ServerLogic()
-    logic.run(mojo_dir, out_dir, port, detect_orphans, configured=True)
+    def parallel_server(id):
+        logic = dojo.ServerLogic()
+        logic.run(os.path.join(mojo_dir, '%02d' % id), os.path.join(out_dir, '%02d' % id), port + id, detect_orphans, configured=True)
+
+    processes = []
+    for i in xrange(num_dojo_blocks):
+        print "Starting %d" % i
+        p = Process(target = parallel_server, args=(i, ))
+        p.start()
+        processes.append(p)
+
+    for p in processes:
+        p.join()
 
