@@ -11,11 +11,13 @@ import numpy as np
 
 import Image
 
+import read_image
+
 def mkdir_safe( dir_to_make ):
 
     os.makedirs(dir_to_make)
 
-def run(input_dir, output_dir):
+def run(input_dir, output_dir, n_images, n_rows, n_cols):
 
     print input_dir
     print output_dir
@@ -26,7 +28,7 @@ def run(input_dir, output_dir):
     original_input_images_path = input_dir
     output_tile_image_path     = os.path.join(output_dir,'images/tiles/')
     output_tile_volume_file    = os.path.join(output_dir,'images/tiledVolumeDescription.xml')
-    input_image_extension      = ''   # all files in the directory
+    #input_image_extension      = ''   # all files in the directory
     output_image_extension     = '.tif'
     image_resize_filter        = PIL.Image.ANTIALIAS
     #nimages_to_process            = 100
@@ -34,16 +36,20 @@ def run(input_dir, output_dir):
 
 
                     
-            
-    files = sorted( glob.glob( original_input_images_path + '/*' + input_image_extension ) )
+    #files = sorted( glob.glob( original_input_images_path + '/*' + input_image_extension ) )
+
+    n_blocks = n_rows * n_cols
+    files = read_image.all_files(input_dir, n_images, n_blocks)
+
+    print "LEN: %d" % len(files)
 
     tile_index_z = 0
 
-    for file in files:
+    for im_ind in xrange(len(files)):
 
-        print file
-        original_image = PIL.Image.open( file )
-
+        print files[im_ind]
+        #original_image = PIL.Image.open( file )
+        original_image = read_image.stitch_images(im_ind, files[im_ind], n_rows, n_cols)
 
         ( original_image_num_pixels_x, original_image_num_pixels_y ) = original_image.size
 
@@ -60,7 +66,7 @@ def run(input_dir, output_dir):
             
             #current_pyramid_image_path = output_pyramid_image_path  + '\\' + 'w=' + '%08d' % ( tile_index_w )
             #current_pyramid_image_name = current_pyramid_image_path + '\\' + 'z=' + '%08d' % ( tile_index_z ) + output_image_extension
-            current_tile_image_path    = output_tile_image_path     + os.sep + 'w=' + '%08d' % ( tile_index_w ) + os.sep + 'z=' + '%08d' % ( tile_index_z )
+            current_tile_image_path    = os.path.join(output_tile_image_path, 'w=' + '%08d' % ( tile_index_w ), 'z=' + '%08d' % ( tile_index_z ))
 
             mkdir_safe( current_tile_image_path )
             #mkdir_safe( current_pyramid_image_path )
@@ -79,7 +85,7 @@ def run(input_dir, output_dir):
                     y = tile_index_y * tile_num_pixels_y
                     x = tile_index_x * tile_num_pixels_x
 
-                    current_tile_image_name = current_tile_image_path + os.sep + 'y=' + '%08d' % ( tile_index_y ) + ','  + 'x=' + '%08d' % ( tile_index_x ) + output_image_extension
+                    current_tile_image_name = os.path.join(current_tile_image_path, 'y=' + '%08d' % ( tile_index_y ) + ','  + 'x=' + '%08d' % ( tile_index_x ) + output_image_extension)
 
                     tile_image = current_image.crop( ( x, y, x + tile_num_pixels_x, y + tile_num_pixels_y ) )     
                     tile_image.save( current_tile_image_name )

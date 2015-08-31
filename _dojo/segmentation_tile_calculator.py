@@ -16,7 +16,9 @@ import glob
 import sqlite3
 import colorsys
 
-def run(input_dir, output_dir):
+import read_image
+
+def run(input_dir, output_dir, n_images, n_rows, n_cols):
 
     tile_num_pixels_y             = 512
     tile_num_pixels_x             = 512
@@ -96,9 +98,9 @@ def run(input_dir, output_dir):
 
 
 
-    def load_id_image ( file_path ):
-        print file_path
-        ids = np.int32( np.array( mahotas.imread( file_path ) ) )
+    def load_id_image ( file_list ): # file_list is a list of files that needs to be stitched together (n_rows x n_cols)
+        print file_list
+        #ids = np.int32( np.array( mahotas.imread( file_path ) ) )
         # print np.unique(ids)
 
         # if len( ids.shape ) == 3:
@@ -107,7 +109,10 @@ def run(input_dir, output_dir):
         #     # Read from pipeline format
         #     ids = ids.transpose() - 1
 
+        ids = np.array(read_image.stitch_images(-1, file_list, n_rows, n_cols))
+
         if len( ids.shape ) == 3:
+            ids = np.array(ids, dtype='int32')
             ids = ids[..., 0] + ids[..., 1] * 256 + ids[..., 2] * 256 * 256
 
         return ids
@@ -123,9 +128,13 @@ def run(input_dir, output_dir):
 
     #color_map_mat_dict   = scipy.io.loadmat( original_input_color_map_path )
     #id_color_map         = color_map_mat_dict[ 'cmap' ]
-    input_search_string  = original_input_ids_path + os.sep + '*' # + input_file_format # take everything
-    files                = sorted( glob.glob( input_search_string ) )
-    print "Found {0} input images in {1}".format( len(files), input_search_string )
+    #input_search_string  = original_input_ids_path + os.sep + '*' # + input_file_format # take everything
+    #files                = sorted( glob.glob( input_search_string ) )
+
+    #print "Found {0} input images in {1}".format( len(files), input_search_string )
+
+    n_blocks = n_rows * n_cols
+    files = read_image.all_files(input_dir, n_images, n_blocks)
 
     if len(files) > 0:
 

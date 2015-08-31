@@ -5,8 +5,8 @@ import os, errno
 import os.path
 import sys
 import glob
-import cv2
 import random
+import shutil
 
 from optparse import OptionParser
 
@@ -27,75 +27,65 @@ def mkdir_p(path):
 
         else: raise
 
-def print_help():
-    print
-    print "usage: id path/to/original/images path/to/segmentation/images path/to/output/folder port"
-    print
-    print
-
-def convert_if_needed(images_dir, output_dir):
-    # if needed convert and move the images in images_dir to data_dir
-
-    files = sorted( glob.glob( images_dir + '/*') )
-    f = files[len(files) / 2]
-
-    fname, ext = os.path.splitext(f)
-    ext = ext[1:]
-
-    im = cv2.imread(f)
-    if len(im.shape) == 2 or ((im[..., 0] == im[..., 1]) & (im[..., 1] == im[..., 2])).all():
-        print 'data already in correct format'
-        return images_dir, ext
-
-    if not mkdir_p(output_dir): # the directory was already there
-        print 'data was already converted'
-        return output_dir, ext
-
-    for f in files:
-        print f
-        im = cv2.imread(f)
-        im = im[..., 0] + im[..., 1] * 256 + im[..., 2] * 256 * 256
-        cv2.imwrite(output_dir + '/' + os.path.basename(f), im)
-
-    return output_dir, ext
-
 if __name__ == '__main__':
-    parser = OptionParser()
-    parser.add_option("-i", "--id", dest="data_id", help="REQURIRED: the id of this data (anything)")
-    parser.add_option("-e", "--orig_images", dest="orig_images_dir", help="REQURIRED: the directory that contains original images")
-    parser.add_option("-s", "--seg_images", dest="seg_images_dir", help="REQUIRED: the directory that contains segmented images")
-    parser.add_option("-o", "--out_images", dest="output_dir", help="REQUIRED: the directory that will contain the output images")
-    parser.add_option("-p", "--port", dest="port", type="int", help="the port of dojo")
-    parser.add_option("-d", "--orphans", dest="detect_orphans", action="store_true", help="detecs orphans")
+    parser = OptionParser("Usage: %prog ORIGINAL/IMAGES/DIR SEGMENTATAION/IMAGES/DIR OUTPUT/DIR [options]")
+
+    if len(sys.argv) < 4:
+        parser.print_help()
+        sys.exit(1)
+
+    orig_images_dir = os.path.abspath(sys.argv[1])
+    seg_images_dir  = os.path.abspath(sys.argv[2])
+    out_dir = os.path.abspath(sys.argv[3])
+
+    parser.add_option("--id", dest="data_id", default=("dojo_%03d" % random.randint(0, 999)), help="the id of this data (anything)")
+    parser.add_option("--n_images", dest="n_images", type="int", default=-1, help="process only first n_images images, -1 means all")
+    parser.add_option("--n_rows", dest="n_rows", type="int", default=1, help="number of rows of blocks that each image is part of")
+    parser.add_option("--n_cols", dest="n_cols", type="int", default=1, help="number of cols of blocks that each image is part of")
+    parser.add_option("--port", dest="port", type="int", default=1993, help="the port of dojo")
+    parser.add_option("--orphans", dest="detect_orphans", action="store_true", help="detects orphans")
+    parser.add_option("--force", dest="force", action="store_true", help="if set, will rewrite all the files")
 
     args, opts = parser.parse_args()
 
     d = vars(args)
     for key, val in d.items():
         exec(key + '=val')
-
-    if data_id == None or orig_images_dir == None or seg_images_dir == None or output_dir == None:
-        print 'Options -i -e -s -o are required. See help'
-        sys.exit(1)
-
-    if port == None:
-        port = random.randint(5000, 6000)
-
+    
     if detect_orphans == None:
         detect_orphans = False
 
-    data_dir = os.path.abspath('data/' + data_id)   # directory where the images for this execution will be stored.
+    print "Starting Dojo with arguments"
+    print args
+    print opts
+    print
 
-    mojo_dir = data_dir + '/mojo'
-    
-    if mkdir_p(mojo_dir):
+    # where all the data will be stored for this execution. So this folder has to contain images and ids subfolders (mojo format).
+    mojo_dir = os.path.join(os.path.expanduser('~'), 'dojo', 'data', data_id)     
 
+    print "The Mojo filesystem: " + mojo_dir
+
+    if force:
+        if os.path.exists(mojo_dir):
+            shutil.rmtree(mojo_dir)
+    if os.path.exists(out_dir):
+        shutil.rmtree(out_dir)
+
+    if mkdir_p(os.path.join(mojo_dir, 'images')):
 #       orig_images_dir, ext = convert_if_needed(orig_images_dir, data_dir + '/orig')
-        _dojo.image_tile_calculator.run(orig_images_dir, mojo_dir)
+        _dojo.image_tile_calculator.run(orig_images_dir, mojo_dir, n_images, n_rows, n_cols)
+    else:
+        print "    Images folder already existes"
 
+    if mkdir_p(os.path.join(mojo_dir, 'ids')):
 #        seg_images_dir, ext = convert_if_needed(seg_images_dir,  data_dir + '/seg')
-        _dojo.segmentation_tile_calculator.run(seg_images_dir, mojo_dir)
+        _dojo.segmentation_tile_calculator.run(seg_images_dir, mojo_dir, n_images, n_rows, n_cols)
+    else:
+        print "    Ids folder already exists"
+
+    mkdir_p(out_dir)
+    print "Results saved in " + out_dir
 
     logic = dojo.ServerLogic()
-    logic.run(mojo_dir, output_dir, port, detect_orphans, configured=True)
+    logic.run(mojo_dir, out_dir, port, detect_orphans, configured=True)
 
