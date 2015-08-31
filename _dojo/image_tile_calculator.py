@@ -12,10 +12,6 @@ import numpy as np
 import Image
 import common
 
-def mkdir_safe( dir_to_make ):
-
-    os.makedirs(dir_to_make)
-
 def run(input_dir, output_dir, common_state):
 
     print input_dir
@@ -25,17 +21,8 @@ def run(input_dir, output_dir, common_state):
     tile_num_pixels_x = 512
 
     original_input_images_path = input_dir
-    #output_tile_image_path     = os.path.join(output_dir,'images/tiles/')
-    #output_tile_volume_file    = os.path.join(output_dir,'images/tiledVolumeDescription.xml')
-    #input_image_extension      = ''   # all files in the directory
     output_image_extension     = '.tif'
     image_resize_filter        = PIL.Image.ANTIALIAS
-    #nimages_to_process            = 100
-    #nimages_to_process            = 1337
-
-
-                    
-    #files = sorted( glob.glob( original_input_images_path + '/*' + input_image_extension ) )
 
     files = common_state.all_files(input_dir)
 
@@ -43,9 +30,6 @@ def run(input_dir, output_dir, common_state):
 
     for im_ind in xrange(len(files)):
 
-        #print files[im_ind]
-        #original_image = PIL.Image.open( file )
-        #original_image = common_state.stitch_images(im_ind, files[im_ind])
         dojo_images = common_state.stitch_and_split(im_ind, files[im_ind])
 
         if im_ind == 0: # now we know the size of the image, we can create appropriate folders
@@ -59,9 +43,6 @@ def run(input_dir, output_dir, common_state):
             original_image = dojo_images[i]
             ( original_image_num_pixels_x, original_image_num_pixels_y ) = original_image.size
 
-            # Enhance contrast to 2% saturation
-            saturation_level = 0.02
-
             current_image_num_pixels_y = original_image_num_pixels_y
             current_image_num_pixels_x = original_image_num_pixels_x
             current_tile_data_space_y  = tile_num_pixels_y
@@ -70,17 +51,11 @@ def run(input_dir, output_dir, common_state):
 
             while current_image_num_pixels_y > tile_num_pixels_y / 2 or current_image_num_pixels_x > tile_num_pixels_x / 2:
                 
-                #current_pyramid_image_path = output_pyramid_image_path  + '\\' + 'w=' + '%08d' % ( tile_index_w )
-                #current_pyramid_image_name = current_pyramid_image_path + '\\' + 'z=' + '%08d' % ( tile_index_z ) + output_image_extension
                 current_tile_image_path    = os.path.join(output_tile_image_path, 'w=' + '%08d' % ( tile_index_w ), 'z=' + '%08d' % ( tile_index_z ))
 
-                mkdir_safe( current_tile_image_path )
-                #mkdir_safe( current_pyramid_image_path )
+                common.mkdir_p( current_tile_image_path )
 
                 current_image = original_image.resize( ( current_image_num_pixels_x, current_image_num_pixels_y ), image_resize_filter )            
-                #current_image.save( current_pyramid_image_name )
-                #print current_pyramid_image_name
-                #print
                 
                 num_tiles_y = int( math.ceil( float( current_image_num_pixels_y ) / tile_num_pixels_y ) )
                 num_tiles_x = int( math.ceil( float( current_image_num_pixels_x ) / tile_num_pixels_x ) )
@@ -95,8 +70,7 @@ def run(input_dir, output_dir, common_state):
 
                         tile_image = current_image.crop( ( x, y, x + tile_num_pixels_x, y + tile_num_pixels_y ) )     
                         tile_image.save( current_tile_image_name )
-                        #print current_tile_image_name
-                        #print
+                        print current_tile_image_name
                         
                 current_image_num_pixels_y = current_image_num_pixels_y / 2
                 current_image_num_pixels_x = current_image_num_pixels_x / 2
@@ -109,7 +83,6 @@ def run(input_dir, output_dir, common_state):
         #if tile_index_z >= nimages_to_process:
         #    break
 
-    print num_dojo_blocks
     for i in xrange(num_dojo_blocks):
         #Output TiledVolumeDescription xml file
         tiledVolumeDescription = lxml.etree.Element( "tiledVolumeDescription",

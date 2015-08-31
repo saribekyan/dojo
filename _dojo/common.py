@@ -97,28 +97,28 @@ class Common:
     def stitch_and_split(self, im_ind, files):
         big_im = self.stitch_images(im_ind, files)
 
-        actual_dojo_size = min(max(self.image_height, self.image_width), self.dojo_block_size)
+        self.actual_dojo_size = min(max(self.image_height, self.image_width), self.dojo_block_size)
 
         curr_h = 0
 
         dojo_images = []
         while curr_h < self.image_height:
-            end_h = curr_h + actual_dojo_size
+            end_h = curr_h + self.actual_dojo_size
             curr_w = 0
             while curr_w < self.image_width:
-                end_w = curr_w + actual_dojo_size
+                end_w = curr_w + self.actual_dojo_size
 
                 if end_h <= self.image_height and end_w <= self.image_width:
                     im = big_im.crop((curr_w, curr_h, end_w - 1, end_h - 1))
                 else:
-                    im = PIL.Image.new(big_im.mode, (actual_dojo_size, actual_dojo_size), "white")
+                    im = PIL.Image.new(big_im.mode, (self.actual_dojo_size, self.actual_dojo_size), "white")
                     im.paste(big_im.crop((curr_w, curr_h, min(end_w, self.image_width) - 1, min(end_h, self.image_height) - 1)), (0, 0))
 
                 dojo_images.append(im)
 
-                curr_w += actual_dojo_size
+                curr_w += self.actual_dojo_size
 
-            curr_h += actual_dojo_size
+            curr_h += self.actual_dojo_size
 
         return dojo_images
 
