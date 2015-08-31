@@ -11,13 +11,11 @@ import numpy as np
 
 import Image
 
-import read_image
-
 def mkdir_safe( dir_to_make ):
 
     os.makedirs(dir_to_make)
 
-def run(input_dir, output_dir, n_images, n_rows, n_cols):
+def run(input_dir, output_dir, common_state):
 
     print input_dir
     print output_dir
@@ -38,10 +36,7 @@ def run(input_dir, output_dir, n_images, n_rows, n_cols):
                     
     #files = sorted( glob.glob( original_input_images_path + '/*' + input_image_extension ) )
 
-    n_blocks = n_rows * n_cols
-    files = read_image.all_files(input_dir, n_images, n_blocks)
-
-    print "LEN: %d" % len(files)
+    files = common_state.all_files(input_dir)
 
     tile_index_z = 0
 
@@ -49,7 +44,7 @@ def run(input_dir, output_dir, n_images, n_rows, n_cols):
 
         print files[im_ind]
         #original_image = PIL.Image.open( file )
-        original_image = read_image.stitch_images(im_ind, files[im_ind], n_rows, n_cols)
+        original_image = common_state.stitch_images(im_ind, files[im_ind])
 
         ( original_image_num_pixels_x, original_image_num_pixels_y ) = original_image.size
 

@@ -16,9 +16,7 @@ import glob
 import sqlite3
 import colorsys
 
-import read_image
-
-def run(input_dir, output_dir, n_images, n_rows, n_cols):
+def run(input_dir, output_dir, common_state):
 
     tile_num_pixels_y             = 512
     tile_num_pixels_x             = 512
@@ -109,7 +107,7 @@ def run(input_dir, output_dir, n_images, n_rows, n_cols):
         #     # Read from pipeline format
         #     ids = ids.transpose() - 1
 
-        ids = np.array(read_image.stitch_images(-1, file_list, n_rows, n_cols))
+        ids = np.array(common_state.stitch_images(-1, file_list))
 
         if len( ids.shape ) == 3:
             ids = np.array(ids, dtype='int32')
@@ -133,8 +131,7 @@ def run(input_dir, output_dir, n_images, n_rows, n_cols):
 
     #print "Found {0} input images in {1}".format( len(files), input_search_string )
 
-    n_blocks = n_rows * n_cols
-    files = read_image.all_files(input_dir, n_images, n_blocks)
+    files = common_state.all_files(input_dir)
 
     if len(files) > 0:
 
