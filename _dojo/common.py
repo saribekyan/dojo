@@ -42,7 +42,7 @@ class Common:
         if len(files) % self.n_blocks != 0:
             print "WARNING: total number of files is %d, but self.n_blocks is %d" % (len(files), self.n_blocks)
     
-        if (self.n_images == None) or (self.n_images * self.n_blocks > len(files)):
+        if (self.n_images == None) or (self.n_images == -1) or (self.n_images * self.n_blocks > len(files)):
             self.n_images = len(files) / self.n_blocks
     
         files = sorted(files)

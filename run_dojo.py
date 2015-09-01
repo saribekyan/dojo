@@ -28,12 +28,13 @@ if __name__ == '__main__':
     parser.add_option("--n_cols", dest="n_cols", type="int", default=1, help="number of cols of blocks that each image is part of [default: %default]")
     parser.add_option("--dojo_size", dest="dojo_size", type="int", default=2048, help="height/width of each dojo instance. [default: %default]")
     parser.add_option("--port", dest="port", type="int", default=1993, help="the starting port of dojo executions [default: %default]")
-    parser.add_option("--force", dest="force", action="store_true", help="if set, will rewrite all the files")
+    parser.add_option("--force", dest="force", action="store_true", default=False, help="if set, will rewrite all the files")
     parser.add_option("--n_dojo_blocks", dest="num_dojo_blocks", type="int", default=-1,
             help="number of dojo blocks, if mojo data is already generated [default: %default]")
-    parser.add_option("--no_seg", dest="no_segmentation", action="store_true",
+    parser.add_option("--no_seg", dest="no_segmentation", action="store_true", default=False,
             help="if set, will assume that there is not segmentation and use one label instead; in this case the second argument is ignored.")
-    parser.add_option("--orphans", dest="detect_orphans", action="store_true", help="detects orphans")
+    parser.add_option("--orphans", dest="detect_orphans", action="store_true", default=False, help="detects orphans")
+    parser.add_option("--only_gen", dest="only_gen", action="store_true", default=False, help="if set only generates the data without running dojo")
 
     if len(sys.argv) < 4:
         parser.print_help()
@@ -49,9 +50,6 @@ if __name__ == '__main__':
     for key, val in d.items():
         exec(key + '=val')
     
-    if detect_orphans == None:
-        detect_orphans = False
-
     print "Starting Dojo with arguments"
     print args
     print opts
@@ -82,6 +80,9 @@ if __name__ == '__main__':
     else:
         print "    Ids folder already exists"
 
+    if only_gen:
+        sys.exit(0)
+
     if common_state.image_height != None:
         num_dojo_blocks = common_state.num_dojo_blocks()
 
@@ -89,7 +90,7 @@ if __name__ == '__main__':
         common.mkdir_p(os.path.join(out_dir, '%02d' % i))
 
     print "Results will be saved in " + out_dir
-
+    
     def parallel_server(id):
         logic = dojo.ServerLogic()
         logic.run(os.path.join(mojo_dir, '%02d' % id), os.path.join(out_dir, '%02d' % id), port + id, detect_orphans, configured=True)

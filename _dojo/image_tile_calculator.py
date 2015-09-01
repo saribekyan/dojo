@@ -25,7 +25,7 @@ def run(input_dir, output_dir, common_state):
     image_resize_filter        = PIL.Image.ANTIALIAS
 
     files = common_state.all_files(input_dir)
-
+    print common_state.n_images
     tile_index_z = 0
 
     for im_ind in xrange(len(files)):

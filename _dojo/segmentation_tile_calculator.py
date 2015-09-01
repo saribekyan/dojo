@@ -188,30 +188,30 @@ def run(input_dir, output_dir, common_state, no_segmentation):
             hdf5['idColorMap'] = color_map
             hdf5.close()
 
-        print 'NOT Writing segmentInfo file (sqlite)'
+    print 'NOT Writing segmentInfo file (sqlite)'
 
-        for i in xrange(num_dojo_blocks):
-            print 'Writing TiledVolumeDescription file'
+    for i in xrange(num_dojo_blocks):
+        print 'Writing TiledVolumeDescription file'
 
-            tiledVolumeDescription = lxml.etree.Element( "tiledVolumeDescription",
-                fileExtension = "hdf5",
-                numTilesX = str( int( math.ceil( common_state.actual_dojo_size / tile_num_pixels_x ) ) ),
-                numTilesY = str( int( math.ceil( common_state.actual_dojo_size / tile_num_pixels_y ) ) ),
-                numTilesZ = str( tile_index_z ),
-                numTilesW = str( tile_index_w ),
-                numVoxelsPerTileX = str( tile_num_pixels_x ),
-                numVoxelsPerTileY = str( tile_num_pixels_y ),
-                numVoxelsPerTileZ = str( 1 ),
-                numVoxelsX = str( common_state.actual_dojo_size ),
-                numVoxelsY = str( common_state.actual_dojo_size ),
-                numVoxelsZ = str( tile_index_z ),
-                dxgiFormat = 'R32_UInt',
-                numBytesPerVoxel = str( 4 ),      
-                isSigned = str( False ).lower() )
-            
-            output_tile_volume_file = os.path.join(output_dir, '%02d' % i, 'ids', 'tiledVolumeDescription.xml')
-            with open( output_tile_volume_file, 'w' ) as file:
-                file.write( lxml.etree.tostring( tiledVolumeDescription, pretty_print = True ) )
+        tiledVolumeDescription = lxml.etree.Element( "tiledVolumeDescription",
+            fileExtension = "hdf5",
+            numTilesX = str( int( math.ceil( common_state.actual_dojo_size / tile_num_pixels_x ) ) ),
+            numTilesY = str( int( math.ceil( common_state.actual_dojo_size / tile_num_pixels_y ) ) ),
+            numTilesZ = str( tile_index_z ),
+            numTilesW = str( tile_index_w ),
+            numVoxelsPerTileX = str( tile_num_pixels_x ),
+            numVoxelsPerTileY = str( tile_num_pixels_y ),
+            numVoxelsPerTileZ = str( 1 ),
+            numVoxelsX = str( common_state.actual_dojo_size ),
+            numVoxelsY = str( common_state.actual_dojo_size ),
+            numVoxelsZ = str( tile_index_z ),
+            dxgiFormat = 'R32_UInt',
+            numBytesPerVoxel = str( 4 ),      
+            isSigned = str( False ).lower() )
+        
+        output_tile_volume_file = os.path.join(output_dir, '%02d' % i, 'ids', 'tiledVolumeDescription.xml')
+        with open( output_tile_volume_file, 'w' ) as file:
+            file.write( lxml.etree.tostring( tiledVolumeDescription, pretty_print = True ) )
 
 if __name__ == "__main__":
     run('/home/hayks/dojo/data/2/seg', '/home/hayks/dojo/data/2/mojo', 'png')
